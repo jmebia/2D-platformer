@@ -4,9 +4,10 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
 
 public class Game extends Application{
 
@@ -19,6 +20,10 @@ public class Game extends Application{
     // game objects
     GameObject2D player;
     GameObject2D floor;
+    GameObject2D floor2;
+
+    // game variables
+    ArrayList<String> input = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -33,23 +38,43 @@ public class Game extends Application{
 
         // instantiate game objects
         player = new GameObject2D(0, 0, 32, 32);
+        player.setVelocity(2);
+        player.setGravity(4);
         floor = new GameObject2D(0, 160, 300, 32);
+        floor2 = new GameObject2D(128, 256, 300, 32);
 
         // controller
         scene.setOnKeyPressed( e -> {
-            if (e.getCode() == KeyCode.RIGHT)
-                player.setX(player.getX() + 2);
-            else if (e.getCode() == KeyCode.LEFT)
-                player.setX(player.getX() - 2);
+            String key = e.getCode().toString();
+            System.out.println(key);
+            if (!input.contains(key)) {
+                input.add(key);
+            }
+        });
+
+        scene.setOnKeyReleased( e -> {
+            String key = e.getCode().toString();
+            System.out.println(key);
+            if (input.contains(key)) {
+                input.remove(key);
+            }
         });
 
     }
 
     void update(long currentTime) {
-
         // update variables
-        if (!player.isSteppingOn(floor))
-            player.setY(player.getY() + 1);
+        // movement
+        if (input.contains("RIGHT")) {
+            player.setX(player.getX() + player.getVelocity());
+        } else if (input.contains("LEFT")) {
+            player.setX(player.getX() - player.getVelocity());
+        }
+
+        if (input.contains("SPACE")) player.setY(player.getY() - 8);
+
+        if (!player.isSteppingOn(floor) && !player.isSteppingOn(floor2))
+            player.setY(player.getY() + player.getGravity());
 
         // update game screen
         // draw sky
@@ -59,6 +84,7 @@ public class Game extends Application{
         // draw floor
         graphicsContext.setFill(Color.GREEN);
         graphicsContext.fillRect(floor.getX(), floor.getY(), floor.getWidth(), floor.getHeight());
+        graphicsContext.fillRect(floor2.getX(), floor2.getY(), floor2.getWidth(), floor2.getHeight());
 
         // draw player
         graphicsContext.setFill(Color.BLACK);
