@@ -1,3 +1,5 @@
+package game;
+
 import javafx.scene.shape.Rectangle;
 
 public class GameObject2D extends Rectangle {
