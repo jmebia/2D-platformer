@@ -8,6 +8,9 @@ public class GameObject2D extends Rectangle {
     private double velocityY;
     private double gravity;
 
+    private boolean jumping = false;
+    private boolean doubleJump = false;
+
     public GameObject2D(double x, double y, double w, double h) {
         setX(x);
         setY(y);
@@ -15,6 +18,7 @@ public class GameObject2D extends Rectangle {
         setHeight(h);
     }
 
+    /** ------------------ Getters and Setters ----------------- */
 
     public double getVelocityX() {
         return velocityX;
@@ -40,6 +44,23 @@ public class GameObject2D extends Rectangle {
         this.gravity = gravity;
     }
 
+    public boolean isJumping() {
+        return jumping;
+    }
+
+    public void setJumping(boolean jumping) {
+        this.jumping = jumping;
+    }
+
+    public boolean isDoubleJump() {
+        return doubleJump;
+    }
+
+    public void setDoubleJump(boolean doubleJump) {
+        this.doubleJump = doubleJump;
+    }
+
+    /** --------------------------------------------------- */
 
 
     boolean isSteppingOn(GameObject2D obj) {

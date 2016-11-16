@@ -25,7 +25,7 @@ public class Game extends Application{
     GameObject2D floor2;
 
     // game variables
-    ArrayList<String> inputX = new ArrayList<>();
+    ArrayList<String> input = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -42,24 +42,24 @@ public class Game extends Application{
         player = new GameObject2D(0, 0, 32, 32);
         player.setVelocityX(0);
         player.setVelocityY(0);
-        player.setGravity(0.2f);
-        floor = new GameObject2D(0, 160, 300, 32);
-        floor2 = new GameObject2D(128, 256, 300, 32);
+        player.setGravity(0.5f);
+        floor = new GameObject2D(0, 300, 300, 32);
+        // floor2 = new GameObject2D(128, 256, 300, 32);
 
         // controller
         scene.setOnKeyPressed( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (!inputX.contains(key)) {
-                inputX.add(key);
+            if (!input.contains(key)) {
+                input.add(key);
             }
         });
 
         scene.setOnKeyReleased( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (inputX.contains(key)) {
-                inputX.remove(key);
+            if (input.contains(key)) {
+                input.remove(key);
             }
         });
 
@@ -68,20 +68,29 @@ public class Game extends Application{
     void update(long currentTime) {
         // update variables
         // movement
-        if (inputX.contains("RIGHT")) {
+        if (input.contains("D")) {
             player.setVelocityX(2f);
-        } else if (inputX.contains("LEFT")) {
+        } else if (input.contains("A")) {
             player.setVelocityX(-2f);
         } else player.setVelocityX(0f);
 
+        if (input.contains("W") && !player.isJumping()) {
+            player.setJumping(true);
+            player.setVelocityY(-9f);
+            if (player.getVelocityY() < 0)
+                player.setVelocityY(player.getVelocityY() + player.getGravity());
+        }
+
         if (!player.isSteppingOn(floor)) {
-            player.setY(player.getY() + player.getVelocityY());
             player.setVelocityY(player.getVelocityY() + player.getGravity());
         } else {
             player.setY(floor.getY() - player.getHeight());
+            player.setJumping(false);
         }
 
+        // update x and y coordinates of player
         player.setX(player.getX() + player.getVelocityX());
+        player.setY(player.getY() + player.getVelocityY());
 
 
         // update game screen
@@ -92,7 +101,7 @@ public class Game extends Application{
         // draw floor
         graphicsContext.setFill(Color.GREEN);
         graphicsContext.fillRect(floor.getX(), floor.getY(), floor.getWidth(), floor.getHeight());
-        graphicsContext.fillRect(floor2.getX(), floor2.getY(), floor2.getWidth(), floor2.getHeight());
+        //graphicsContext.fillRect(floor2.getX(), floor2.getY(), floor2.getWidth(), floor2.getHeight());
 
         // draw player
         graphicsContext.setFill(Color.BLACK);
