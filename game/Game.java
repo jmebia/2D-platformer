@@ -40,8 +40,9 @@ public class Game extends Application{
 
         // instantiate game objects
         player = new GameObject2D(0, 0, 32, 32);
-        player.setVelocity(2);
-        player.setGravity(4);
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+        player.setGravity(0.2f);
         floor = new GameObject2D(0, 160, 300, 32);
         floor2 = new GameObject2D(128, 256, 300, 32);
 
@@ -68,15 +69,19 @@ public class Game extends Application{
         // update variables
         // movement
         if (input.contains("RIGHT")) {
-            player.setX(player.getX() + player.getVelocity());
+            player.setVelocityX(1f);
         } else if (input.contains("LEFT")) {
-            player.setX(player.getX() - player.getVelocity());
-        }
+            player.setVelocityX(-1f);
+        } else player.setVelocityX(0f);
 
-        if (input.contains("SPACE")) player.setY(player.getY() - 8);
+        if (input.contains("SPACE")) player.setVelocityY(-12f);
 
-        if (!player.isSteppingOn(floor) && !player.isSteppingOn(floor2))
-            player.setY(player.getY() + player.getGravity());
+        if (!player.isSteppingOn(floor)) {
+            player.setY(player.getY() + player.getVelocityY());
+            player.setVelocityY(player.getVelocityY() + player.getGravity());
+        } else player.setY(floor.getY() - player.getHeight());
+        player.setX(player.getX() + player.getVelocityX());
+
 
         // update game screen
         // draw sky
