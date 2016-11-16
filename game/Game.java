@@ -25,7 +25,7 @@ public class Game extends Application{
     GameObject2D floor2;
 
     // game variables
-    ArrayList<String> input = new ArrayList<>();
+    ArrayList<String> inputX = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -50,16 +50,16 @@ public class Game extends Application{
         scene.setOnKeyPressed( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (!input.contains(key)) {
-                input.add(key);
+            if (!inputX.contains(key)) {
+                inputX.add(key);
             }
         });
 
         scene.setOnKeyReleased( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (input.contains(key)) {
-                input.remove(key);
+            if (inputX.contains(key)) {
+                inputX.remove(key);
             }
         });
 
@@ -68,18 +68,19 @@ public class Game extends Application{
     void update(long currentTime) {
         // update variables
         // movement
-        if (input.contains("RIGHT")) {
-            player.setVelocityX(1f);
-        } else if (input.contains("LEFT")) {
-            player.setVelocityX(-1f);
+        if (inputX.contains("RIGHT")) {
+            player.setVelocityX(2f);
+        } else if (inputX.contains("LEFT")) {
+            player.setVelocityX(-2f);
         } else player.setVelocityX(0f);
-
-        if (input.contains("SPACE")) player.setVelocityY(-12f);
 
         if (!player.isSteppingOn(floor)) {
             player.setY(player.getY() + player.getVelocityY());
             player.setVelocityY(player.getVelocityY() + player.getGravity());
-        } else player.setY(floor.getY() - player.getHeight());
+        } else {
+            player.setY(floor.getY() - player.getHeight());
+        }
+
         player.setX(player.getX() + player.getVelocityX());
 
 
