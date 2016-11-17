@@ -25,7 +25,8 @@ public class Game extends Application{
     GameObject2D floor2;
 
     // game variables
-    ArrayList<String> input = new ArrayList<>();
+    ArrayList<String> keyboardInput = new ArrayList<>();
+    ArrayList<String> mouseInput = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -53,31 +54,51 @@ public class Game extends Application{
         scene.setOnKeyPressed( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (!input.contains(key)) {
-                input.add(key);
+            if (!keyboardInput.contains(key)) {
+                keyboardInput.add(key);
             }
         });
 
         scene.setOnKeyReleased( e -> {
             String key = e.getCode().toString();
             System.out.println(key);
-            if (input.contains(key)) {
-                input.remove(key);
+            if (keyboardInput.contains(key)) {
+                keyboardInput.remove(key);
             }
         });
+
+        scene.setOnMousePressed( e -> {
+            String button = e.getButton().toString();
+            System.out.println(button);
+            if (!mouseInput.contains(button)) {
+                mouseInput.add(button);
+            }
+        });
+
+        scene.setOnMouseReleased( e -> {
+            String button = e.getButton().toString();
+            System.out.println(button);
+            if (mouseInput.contains(button)) {
+                mouseInput.remove(button);
+            }
+        });
+
 
     }
 
     void update(long currentTime) {
         // update variables
-        // movement
-        if (input.contains("D")) {
-            player.setVelocityX(2f);
-        } else if (input.contains("A")) {
-            player.setVelocityX(-2f);
-        } else player.setVelocityX(0f);
 
-        if (input.contains("W") && !player.isJumping()) {
+        player.setVelocityX(0);
+
+        // movement
+        if (keyboardInput.contains("D")) {
+            player.setVelocityX(2f);
+        } else if (keyboardInput.contains("A")) {
+            player.setVelocityX(-2f);
+        }
+
+        if (keyboardInput.contains("W") && !player.isJumping()) {
             player.setJumping(true);
             player.setVelocityY(-9f);
             if (player.getVelocityY() < 0)
@@ -91,6 +112,10 @@ public class Game extends Application{
         } else {
             player.setY(ground.getY() - player.getHeight());
             player.setJumping(false);
+        }
+
+        if (mouseInput.contains("PRIMARY")) {
+            player.setVelocityX(4);
         }
 
         // update x and y coordinates of player
