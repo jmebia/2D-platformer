@@ -34,17 +34,20 @@ public class Game extends Application{
         // initialize game components here
         root = new Group();
         scene = new Scene(root);
-        canvas = new Canvas(512, 512);
+        canvas = new Canvas(768, 512);
         graphicsContext = canvas.getGraphicsContext2D();
         root.getChildren().add(canvas);
 
         // instantiate game objects
-        player = new GameObject2D(0, 0, 32, 32);
+        player = new GameObject2D(256, 256, 32, 32);
         player.setVelocityX(0);
         player.setVelocityY(0);
         player.setGravity(0.5f);
-        floor = new GameObject2D(0, 300, 300, 32);
-        // floor2 = new GameObject2D(128, 256, 300, 32);
+        floor = new GameObject2D(256, 288, 512, 32);
+        floor2 = new GameObject2D(256, 224, 300, 32);
+
+        player.addGround(floor);
+        player.addGround(floor2);
 
         // controller
         scene.setOnKeyPressed( e -> {
@@ -81,10 +84,12 @@ public class Game extends Application{
                 player.setVelocityY(player.getVelocityY() + player.getGravity());
         }
 
-        if (!player.isSteppingOn(floor)) {
+        GameObject2D ground = player.onGround();
+
+        if (ground == null) {
             player.setVelocityY(player.getVelocityY() + player.getGravity());
         } else {
-            player.setY(floor.getY() - player.getHeight());
+            player.setY(ground.getY() - player.getHeight());
             player.setJumping(false);
         }
 
@@ -96,12 +101,12 @@ public class Game extends Application{
         // update game screen
         // draw sky
         graphicsContext.setFill(Color.SKYBLUE);
-        graphicsContext.fillRect(0, 0, 512, 512);
+        graphicsContext.fillRect(0, 0, 768, 512);
 
         // draw floor
         graphicsContext.setFill(Color.GREEN);
         graphicsContext.fillRect(floor.getX(), floor.getY(), floor.getWidth(), floor.getHeight());
-        //graphicsContext.fillRect(floor2.getX(), floor2.getY(), floor2.getWidth(), floor2.getHeight());
+        graphicsContext.fillRect(floor2.getX(), floor2.getY(), floor2.getWidth(), floor2.getHeight());
 
         // draw player
         graphicsContext.setFill(Color.BLACK);
@@ -114,6 +119,7 @@ public class Game extends Application{
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Platformer 2D");
+        primaryStage.setResizable(false);
         primaryStage.show();
 
         new AnimationTimer() {

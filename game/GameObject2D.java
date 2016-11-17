@@ -2,7 +2,11 @@ package game;
 
 import javafx.scene.shape.Rectangle;
 
+import java.util.ArrayList;
+
 public class GameObject2D extends Rectangle {
+
+    ArrayList<GameObject2D> ground;
 
     private double velocityX;
     private double velocityY;
@@ -16,6 +20,8 @@ public class GameObject2D extends Rectangle {
         setY(y);
         setWidth(w);
         setHeight(h);
+
+        ground = new ArrayList<>();
     }
 
     /** ------------------ Getters and Setters ----------------- */
@@ -62,18 +68,28 @@ public class GameObject2D extends Rectangle {
 
     /** --------------------------------------------------- */
 
+    public void addGround(GameObject2D obj) {
+        ground.add(obj);
+    }
 
-    boolean isSteppingOn(GameObject2D obj) {
+    GameObject2D onGround() {
 
-        boolean isStepping = false;
+        GameObject2D g = null;
 
-        if (getY() + getWidth() >= obj.getY() && (
-                (getX() >= obj.getX() && getX() + getWidth() <= obj.getX() + obj.getWidth()) ||
-                (getX() < obj.getX() + obj.getWidth() && getX() + getWidth() > obj.getX() + obj.getWidth()) ||
-                (getX() < obj.getX() && getX() + getWidth() > obj.getX()) ))
-            isStepping = true;
+        for (GameObject2D obj: ground) {
 
-        return isStepping;
+            if (getVelocityY() > 0) {
+                if ( getY() + getHeight() >= obj.getY() && getY() + getHeight() <= obj.getY() + obj.getHeight() / 2 && (
+                        (getX() >= obj.getX() && getX() + getWidth() <= obj.getX() + obj.getWidth()) ||
+                                (getX() < obj.getX() + obj.getWidth() && getX() + getWidth() > obj.getX() + obj.getWidth()) ||
+                                (getX() < obj.getX() && getX() + getWidth() > obj.getX()))) {
+                    g = obj;
+                    break;
+                }
+            }
+        }
+
+        return g;
     }
 
 }
