@@ -1,5 +1,7 @@
 package game;
 
+import game.Objects2D.Character;
+import game.Objects2D.GameObject2D;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -20,7 +22,7 @@ public class Game extends Application{
     GraphicsContext graphicsContext;
 
     // game objects
-    GameObject2D player;
+    Character player;
     GameObject2D floor;
     GameObject2D floor2;
 
@@ -40,10 +42,10 @@ public class Game extends Application{
         root.getChildren().add(canvas);
 
         // instantiate game objects
-        player = new GameObject2D(256, 256, 32, 32);
+        player = new Character(256, 224, 32, 32);
         player.setVelocityX(0);
         player.setVelocityY(0);
-        player.setGravity(0.5f);
+        player.setGravity(0.45f);
         floor = new GameObject2D(256, 288, 512, 32);
         floor2 = new GameObject2D(256, 224, 300, 32);
 
@@ -89,13 +91,15 @@ public class Game extends Application{
     void update(long currentTime) {
         // update variables
 
-        player.setVelocityX(0);
-
         // movement
         if (keyboardInput.contains("D")) {
-            player.setVelocityX(2f);
+            player.setVelocityX(4f);
         } else if (keyboardInput.contains("A")) {
-            player.setVelocityX(-2f);
+            player.setVelocityX(-4f);
+        } else if (player.getVelocityX() > 0) {
+            player.setVelocityX(player.getVelocityX() - 0.5f);
+        } else if (player.getVelocityX() < 0) {
+            player.setVelocityX(player.getVelocityX() + 0.5f);
         }
 
         if (keyboardInput.contains("W") && !player.isJumping()) {
@@ -105,18 +109,21 @@ public class Game extends Application{
                 player.setVelocityY(player.getVelocityY() + player.getGravity());
         }
 
-        GameObject2D ground = player.onGround();
 
-        if (ground == null) {
+        GameObject2D ground = player.onGround();
+        if (ground == null)
             player.setVelocityY(player.getVelocityY() + player.getGravity());
-        } else {
-            player.setY(ground.getY() - player.getHeight());
+        else {
+            player.setVelocityY(0);
             player.setJumping(false);
+            player.setY( ground.getY() - player.getHeight() );
         }
+
 
         if (mouseInput.contains("PRIMARY")) {
-            player.setVelocityX(4);
+            player.setVelocityX(6);
         }
+
 
         // update x and y coordinates of player
         player.setX(player.getX() + player.getVelocityX());
@@ -136,6 +143,7 @@ public class Game extends Application{
         // draw player
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillRect(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+
 
     }
 
