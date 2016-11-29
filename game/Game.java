@@ -5,6 +5,7 @@ import game.Objects2D.GameObject2D;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -16,19 +17,25 @@ import java.util.ArrayList;
 public class Game extends Application{
 
     // javafx components
-    Group root;
-    Scene scene;
-    Canvas canvas;
-    GraphicsContext graphicsContext;
+    private Group root;
+    private Scene scene;
+    private Canvas canvas;
+    private GraphicsContext graphicsContext;
+    private PerspectiveCamera camera;
 
     // game objects
-    Character player;
-    GameObject2D floor;
-    GameObject2D floor2;
+    private Character player;
+    private GameObject2D floor;
+    private GameObject2D floor2;
 
     // game variables
-    ArrayList<String> keyboardInput = new ArrayList<>();
-    ArrayList<String> mouseInput = new ArrayList<>();
+    private double playerHeight = 64;
+    private double playerWidth = 32;
+
+    // input store
+    private ArrayList<String> keyboardInput = new ArrayList<>();
+    private ArrayList<String> mouseInput = new ArrayList<>();
+
 
     @Override
     public void init() throws Exception {
@@ -36,18 +43,27 @@ public class Game extends Application{
 
         // initialize game components here
         root = new Group();
-        scene = new Scene(root);
-        canvas = new Canvas(768, 512);
+        scene = new Scene(root, 768, 512);
+        scene.setFill(Color.BLACK);
+        canvas = new Canvas(1000, 1000);
+        root.getChildren().addAll(canvas);
         graphicsContext = canvas.getGraphicsContext2D();
-        root.getChildren().add(canvas);
+
+        // set up camera
+        camera = new PerspectiveCamera(true);
+        camera.setTranslateZ(-1000);
+        camera.setNearClip(0.1);
+        camera.setFarClip(2000.0);
+        camera.setFieldOfView(20);
+        scene.setCamera(camera);
 
         // instantiate game objects
-        player = new Character(256, 224, 32, 32);
+        player = new Character(256, 224, playerWidth, playerHeight);
         player.setVelocityX(0);
         player.setVelocityY(0);
         player.setGravity(0.45f);
-        floor = new GameObject2D(256, 288, 512, 32);
-        floor2 = new GameObject2D(256, 224, 300, 32);
+        floor = new GameObject2D(256, 448, 512, 32);
+        floor2 = new GameObject2D(256, 512, 300, 32);
 
         player.addGround(floor);
         player.addGround(floor2);
@@ -85,27 +101,31 @@ public class Game extends Application{
             }
         });
 
-
     }
 
+    /** UPDATE */
     void update(long currentTime) {
         // update variables
 
         // movement
-        if (keyboardInput.contains("D")) {
-            player.setVelocityX(4f);
-        } else if (keyboardInput.contains("A")) {
-            player.setVelocityX(-4f);
-        } else if (player.getVelocityX() > 0) {
-            player.setVelocityX(player.getVelocityX() - 0.5f);
-        } else if (player.getVelocityX() < 0) {
-            player.setVelocityX(player.getVelocityX() + 0.5f);
+        if (!player.isJumping()) {
+            if (keyboardInput.contains("D")) {
+                player.setVelocityX(4f);
+            } else if (keyboardInput.contains("A")) {
+                player.setVelocityX(-4f);
+            } else
+                player.setVelocityX(0);
+        }
+
+        if (player.isJumping()) {
+            if (player.getVelocityX() > 0) player.setVelocityX(player.getVelocityX() - 0.1);
+            else if (player.getVelocityX() < 0) player.setVelocityX(player.getVelocityX() + 0.1);
         }
 
         if (keyboardInput.contains("W") && !player.isJumping()) {
             player.setJumping(true);
             player.setVelocityY(-9f);
-            if (player.getVelocityY() < 0)
+            if (player.getVelocityY() < 0 && player.getVelocityY() != -4)
                 player.setVelocityY(player.getVelocityY() + player.getGravity());
         }
 
@@ -124,6 +144,9 @@ public class Game extends Application{
             player.setVelocityX(6);
         }
 
+        // update camera
+        camera.setTranslateX(player.getX());
+        camera.setTranslateY(player.getY());
 
         // update x and y coordinates of player
         player.setX(player.getX() + player.getVelocityX());
@@ -133,7 +156,7 @@ public class Game extends Application{
         // update game screen
         // draw sky
         graphicsContext.setFill(Color.SKYBLUE);
-        graphicsContext.fillRect(0, 0, 768, 512);
+        graphicsContext.fillRect(0, 0, 1000, 1000);
 
         // draw floor
         graphicsContext.setFill(Color.GREEN);
@@ -151,8 +174,9 @@ public class Game extends Application{
     public void start(Stage primaryStage) throws Exception {
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Platformer 2D");
+        primaryStage.setTitle("2D Platformer"); // title displayed on game window
         primaryStage.setResizable(false);
+        primaryStage.centerOnScreen();
         primaryStage.show();
 
         new AnimationTimer() {
