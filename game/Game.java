@@ -9,6 +9,7 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -22,6 +23,8 @@ public class Game extends Application{
     private Canvas canvas;
     private GraphicsContext graphicsContext;
     private PerspectiveCamera camera;
+    private Label labelFrameRate;
+    private Label labelPlayerHeight;
 
     // game objects
     private Character player;
@@ -29,13 +32,19 @@ public class Game extends Application{
     private GameObject2D floor2;
 
     // game variables
-    private double playerHeight = 64;
-    private double playerWidth = 32;
+    private final double playerHeight = 64;
+    private final double playerWidth = 32;
+    private final double crouchHeight = 48;
+    private GameObject2D ground;
 
     // input store
     private ArrayList<String> keyboardInput = new ArrayList<>();
     private ArrayList<String> mouseInput = new ArrayList<>();
 
+    // frame rate meter
+    private final long[] frameTimes = new long[100];
+    private int frameTimeIndex = 0 ;
+    private boolean arrayFilled = false ;
 
     @Override
     public void init() throws Exception {
@@ -46,8 +55,11 @@ public class Game extends Application{
         scene = new Scene(root, 768, 512);
         scene.setFill(Color.BLACK);
         canvas = new Canvas(1000, 1000);
-        root.getChildren().addAll(canvas);
+        labelFrameRate = new Label();
+        labelPlayerHeight = new Label();
+        root.getChildren().addAll(canvas, labelFrameRate);
         graphicsContext = canvas.getGraphicsContext2D();
+        labelFrameRate.toFront();
 
         // set up camera
         camera = new PerspectiveCamera(true);
@@ -105,38 +117,79 @@ public class Game extends Application{
 
     /** UPDATE */
     void update(long currentTime) {
-        // update variables
+
+        // check frame rate
+        long oldFrameTime = frameTimes[frameTimeIndex] ;
+        frameTimes[frameTimeIndex] = currentTime ;
+        frameTimeIndex = (frameTimeIndex + 1) % frameTimes.length ;
+        if (frameTimeIndex == 0) {
+            arrayFilled = true ;
+        }
+        if (arrayFilled) {
+            long elapsedNanos = currentTime - oldFrameTime ;
+            long elapsedNanosPerFrame = elapsedNanos / frameTimes.length ;
+            double frameRate = 1_000_000_000.0 / elapsedNanosPerFrame ;
+            labelFrameRate.setText(String.format("FPS: %.3f", frameRate));
+        }
 
         // movement
         if (!player.isJumping()) {
             if (keyboardInput.contains("D")) {
-                player.setVelocityX(4f);
+                if (player.getHeight() == crouchHeight)
+                    player.setVelocityX(1f);
+                else if (player.getVelocityX() < 4)
+                    player.setVelocityX(player.getVelocityX() + 0.5f);
             } else if (keyboardInput.contains("A")) {
-                player.setVelocityX(-4f);
+                if (player.getHeight() == crouchHeight)
+                    player.setVelocityX(-1f);
+                else if (player.getVelocityX() > -4)
+                    player.setVelocityX(player.getVelocityX() - 0.5f);
             } else
                 player.setVelocityX(0);
         }
 
+        // after jump
         if (player.isJumping()) {
-            if (player.getVelocityX() > 0) player.setVelocityX(player.getVelocityX() - 0.1);
-            else if (player.getVelocityX() < 0) player.setVelocityX(player.getVelocityX() + 0.1);
+            if (player.getVelocityX() > 0) player.setVelocityX(player.getVelocityX() - 0.1f);
+            else if (player.getVelocityX() < 0) player.setVelocityX(player.getVelocityX() + 0.1f);
         }
 
-        if (keyboardInput.contains("W") && !player.isJumping()) {
-            player.setJumping(true);
-            player.setVelocityY(-9f);
-            if (player.getVelocityY() < 0 && player.getVelocityY() != -4)
-                player.setVelocityY(player.getVelocityY() + player.getGravity());
+        // fall
+        if (player.getHeight() == crouchHeight) {
+            if (keyboardInput.contains("SPACE")) {
+                keyboardInput.remove("SPACE");
+                player.setY(player.getY() + 16);
+            }
+        } else {
+            // jump
+            if (keyboardInput.contains("SPACE") && !player.isJumping()) {
+                keyboardInput.remove("SPACE");
+                player.setJumping(true);
+                player.setVelocityY(-9f);
+                if (player.getVelocityY() < 0 && player.getVelocityY() != -4)
+                    player.setVelocityY(player.getVelocityY() + player.getGravity());
+            }
         }
 
-
-        GameObject2D ground = player.onGround();
+        // check ground
+        ground = player.onGround();
         if (ground == null)
             player.setVelocityY(player.getVelocityY() + player.getGravity());
         else {
             player.setVelocityY(0);
             player.setJumping(false);
             player.setY( ground.getY() - player.getHeight() );
+
+            // crouch
+            if (keyboardInput.contains("S"))  {
+                player.setHeight(crouchHeight);
+                player.setY( ground.getY() - player.getHeight() );
+            }
+            else {
+                player.setHeight(playerHeight);
+                player.setY( ground.getY() - player.getHeight() );
+            }
+
         }
 
 
@@ -144,14 +197,18 @@ public class Game extends Application{
             player.setVelocityX(6);
         }
 
-        // update camera
-        camera.setTranslateX(player.getX());
-        camera.setTranslateY(player.getY());
-
         // update x and y coordinates of player
         player.setX(player.getX() + player.getVelocityX());
         player.setY(player.getY() + player.getVelocityY());
 
+        // update camera
+        camera.setTranslateX(player.getX());
+        if (player.getVelocityY() != 0)
+            camera.setTranslateY(player.getY());
+
+        // move labelFrameRate with camera
+        labelFrameRate.setTranslateX(camera.getTranslateX() - 256);
+        labelFrameRate.setTranslateY(camera.getTranslateY() - 160);
 
         // update game screen
         // draw sky

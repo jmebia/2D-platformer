@@ -62,7 +62,7 @@ public class GameObject2D extends Rectangle {
         for (GameObject2D obj: ground) {
 
             if (getVelocityY() >= 0) {
-                if ( getY() + getHeight() >= obj.getY() && getY() + getHeight() <= obj.getY() + obj.getHeight() / 2 && (
+                if ( getY() + getHeight() >= obj.getY() && getY() + getHeight() <= obj.getY() + obj.getHeight() / 3 && (
                         ( getX() >= obj.getX() && getX() + getWidth() <= obj.getX() + obj.getWidth() ) ||
                                 ( getX() < obj.getX() + obj.getWidth() && getX() + getWidth() > obj.getX() + obj.getWidth() ) ||
                                 ( getX() < obj.getX() && getX() + getWidth() > obj.getX() ) )) {
